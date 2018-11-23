@@ -1,7 +1,11 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
 import SocketServer
+import urlparse, json
+
+registeredWorkers = []
 
 class S(BaseHTTPRequestHandler):
+
     def _set_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
@@ -16,6 +20,18 @@ class S(BaseHTTPRequestHandler):
         
     def do_POST(self):
         # Doesn't do anything with posted data
+	content_len = int(self.headers.getheader('content-length'))
+	parsed_path = urlparse.urlparse(self.path)
+	post_body = self.rfile.read(content_len)
+	data = json.loads(post_body)
+	print(parsed_path)
+	print(post_body)
+	if parsed_path.path == '/registerWorker':
+		registeredWorkers.append(data.get('workerName'))
+	else:
+		print("Should forward to one of {}".format(registeredWorkers))
+
+	print(registeredWorkers)
         self._set_headers()
         self.wfile.write("<html><body><h1>POST!</h1></body></html>")
         
