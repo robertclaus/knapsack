@@ -6,7 +6,7 @@ cd knapsack
 
 wget https://www.emulab.net/downloads/geni-get.tar.gz
 tar -zxvf geni-get.tar.gz
-export KNAME=$(geni-get --all | egrep -o "name=[\\][\"]$(geni-get client_id).*[.]us[\\][\"]" | cut -c 8- | sed 's/.\{2\}$//')
+export KNAME="master."$(geni-get --all | egrep -o "name=[\\][\"]worker-1(.*).uwmadison744-f18-PG0.wisc.cloudlab.us" | cut -c 17- | sed 's/.\{38\}$//')".uwmadison744-f18-PG0.wisc.cloudlab.us"
 
 echo
 echo
@@ -16,5 +16,5 @@ echo
 echo
 echo
 
-nohup python ./balancer/server.py &
+sudo nohup python ./balancer/server.py &
 
