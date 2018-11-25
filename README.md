@@ -11,4 +11,7 @@ Install the master first since the workers will auto-register themselves with th
 
 ### Workers
 1. Run: wget https://raw.githubusercontent.com/robertclaus/knapsack/master/deploy/worker_setup.sh
-2. Run: sudo bash worker_setup.sh <master hostname>
+2. Run: sudo bash worker_setup.sh <master hostname> <worker hostname>
+
+For example:
+sudo bash worker_setup.sh master.Knapsack05.uwmadison744-f18-PG0.wisc.cloudlab.us worker-3.Knapsack05.uwmadison744-f18-PG0.wisc.cloudlab.us

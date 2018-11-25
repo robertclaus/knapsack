@@ -1,5 +1,6 @@
 
 export MNAME=$1
+export WNAME=$2
 
 mkdir /local/openLambda
 cd /local/openLambda
@@ -14,8 +15,4 @@ make test-all
 
 cp -r ./quickstart/handlers/hello ./knapsack/registry/hello
 
-wget https://www.emulab.net/downloads/geni-get.tar.gz
-tar -zxvf geni-get.tar.gz
-export WNAME=$(geni-get --all)$(geni-get --all | egrep -o "name=[\\][\"]worker-1(.*).uwmadison744-f18-PG0.wisc.cloudlab.us" | cut -c 17- | sed 's/.\{38\}$//')".uwmadison744-f18-PG0.wisc.cloudlab.us"
-
-curl -X POST $MNAME/registerWorker -d '{"workerName": $WNAME}'
+curl -d '{"workerName":"$WNAME"}' $MNAME/registerWorker
