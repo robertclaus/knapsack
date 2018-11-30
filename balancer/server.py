@@ -7,10 +7,12 @@ import random
 
 from collections import defaultdict
 
-registeredWorkers = []
-profileData = defaultdict(list)
+
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
+
+    registeredWorkers = []
+    profileData = defaultdict(list)
 
     def _set_headers(self):
         self.send_response(200)
@@ -38,18 +40,18 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
 
         if '/registerWorker' in parsed_path.path:
-            registeredWorkers.append(post_data.get('workerName'))
+            MyHTTPRequestHandler.registeredWorkers.append(post_data.get('workerName'))
             self._set_headers()
-            self.wfile.write("Workers:{}".format(registeredWorkers))
+            self.wfile.write("Workers:{}".format(MyHTTPRequestHandler.registeredWorkers))
         elif '/unregisterWorkers' in parsed_path.path:
-            registeredWorkers = []
+            MyHTTPRequestHandler.registeredWorkers = []
             self._set_headers()
-            self.wfile.write("Workers:{}".format(registeredWorkers))
+            self.wfile.write("Workers:{}".format(MyHTTPRequestHandler.registeredWorkers))
         elif '/viewWorkers' in parsed_path.path:
             self._set_headers()
-            self.wfile.write("Workers:{}".format(registeredWorkers))
+            self.wfile.write("Workers:{}".format(MyHTTPRequestHandler.registeredWorkers))
         elif "/addToProfile" in parsed_path.path:
-            profileData[post_data.get('workerName')].append(post_data)
+            MyHTTPRequestHandler.profileData[post_data.get('workerName')].append(post_data)
             self._set_headers()
             self.wfile.write("Received data for worker {}:\r\n{}".format(post_data.get('workerName'), post_data))
         elif "/runLambda" in parsed_path.path:
@@ -59,7 +61,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(r.text)
         elif "/status" in parsed_path.path:
             response = ""
-            for worker in registeredWorkers:
+            for worker in MyHTTPRequestHandler.registeredWorkers:
                 r = requests.post("{}{}".format(worker, parsed_path.path), data=post_data)
                 response += "\r\n\r\n{}:\r\n{}\r\n".format(worker, r.text)
             self._set_headers()
@@ -69,7 +71,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write("Not a recognized path")
 
     def _schedule(self):
-        return self._schedule__Random(registeredWorkers)
+        return self._schedule__Random(MyHTTPRequestHandler.registeredWorkers)
 
     def _schedule__Random(self, workerList):
         return random.choice(workerList)
