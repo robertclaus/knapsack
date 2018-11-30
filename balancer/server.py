@@ -95,7 +95,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write("All profile data:\r\n{}".format(result))
         elif "/calculateProfile" in parsed_path.path:
-            imp.reload(profileCalculator)
+            #imp.reload(profileCalculator)
             MyHTTPRequestHandler.calculatedProfile = profileCalculator.calculate(MyHTTPRequestHandler.dataFile)
 
             db = sqlite3.connect(MyHTTPRequestHandler.dataFile)
@@ -113,7 +113,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write("Calculated Profile {}".format(result))
         elif "/runLambda" in parsed_path.path:
-            imp.reload(scheduler)
+            #imp.reload(scheduler)
             selectedWorker = scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
 
             port = workerTracker.port_to_use(selectedWorker)
