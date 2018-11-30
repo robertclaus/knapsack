@@ -69,7 +69,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
             cursor = db.cursor()
             cursor.execute('''INSERT INTO profile_data(worker, timestamp, pid, cmd, cpu, mem)
-                  VALUES(?,?,?,?,?)''', (post_data.get('workerName'), post_data.get('Timestamp'), post_data.get('PID'), post_data.get('Cmd'), post_data.get('cpu'), post_data.get('mem')))
+                  VALUES(?,?,?,?,?,?)''', (post_data.get('workerName'), post_data.get('Timestamp'), post_data.get('PID'), post_data.get('Cmd'), post_data.get('cpu'), post_data.get('mem')))
             db.commit()
 
             db.close()
@@ -77,11 +77,6 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write("Received data for worker {}:\r\n{}".format(post_data.get('workerName'), post_data))
         elif "/profileData" in parsed_path.path:
             db = sqlite3.connect(MyHTTPRequestHandler.dataFile)
-            cursor = db.cursor()
-            cursor.execute('''
-                    CREATE TABLE IF NOT EXISTS profile_data(worker TEXT, timestamp TEXT, pid TEXT, cmd TEXT, cpu TEXT, mem TEXT);
-                ''')
-            db.commit()
 
             cursor = db.cursor()
             cursor.execute('''SELECT * FROM profile_data''')
