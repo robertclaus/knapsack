@@ -7,6 +7,9 @@ import imp
 
 import scheduler
 import profileCalculator
+import workerTracker
+
+import datetime
 
 from collections import defaultdict
 
@@ -49,6 +52,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
         if '/registerWorker' in parsed_path.path:
             MyHTTPRequestHandler.registeredWorkers.append(post_data.get('workerName'))
+            workerTracker.init(MyHTTPRequestHandler.registeredWorkers)
             self._set_headers()
             self.wfile.write("Workers:{}".format(MyHTTPRequestHandler.registeredWorkers))
         elif '/unregisterWorkers' in parsed_path.path:
@@ -112,10 +116,14 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             imp.reload(scheduler)
             selectedWorker = scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
 
-            path = "http://{}:8080{}".format(selectedWorker, parsed_path.path)
+            port = workerTracker.port_to_use(selectedWorker)
+            path = "http://{}:{}{}".format(selectedWorker, port, parsed_path.path)
             request_data = post_data
 
+            workerTracker.worker_start(selectedWorker,port, parsed_path.path, datetime.datetime.now())
             r = requests.post(path, json=request_data)
+            workerTracker.worker_end(selectedWorker,port, parsed_path.path, datetime.datetime.now())
+
             self._set_headers(r.status_code)
             self.wfile.write(r.text)
         elif "/status" in parsed_path.path:
