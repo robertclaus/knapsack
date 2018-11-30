@@ -14,8 +14,8 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     registeredWorkers = []
     profileData = defaultdict(list)
 
-    def _set_headers(self):
-        self.send_response(200)
+    def _set_headers(self, code=200):
+        self.send_response(code)
         self.send_header('Content-type', 'text/html')
         self.send_header('Access-Control-Allowed-Origin', '*')
         self.end_headers()
@@ -61,8 +61,8 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             request_data = post_data
 
             r = requests.post(path, json=request_data)
+            self._set_headers(r.status_code)
             self.wfile.write(r.text)
-            self.send_response(r.status_code, r.reason)
         elif "/status" in parsed_path.path:
             response = ""
             for worker in MyHTTPRequestHandler.registeredWorkers:
