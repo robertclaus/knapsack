@@ -89,12 +89,12 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             result = ""
             all_rows = cursor.fetchall()
             for row in all_rows:
-                result += row
+                result += str(row)
 
             db.close()
 
             self._set_headers()
-            self.wfile.write("All profile data:\r\n{}".format(MyHTTPRequestHandler.profileData))
+            self.wfile.write("All profile data:\r\n{}".format(result))
         elif "/calculateProfile" in parsed_path.path:
             imp.reload(profileCalculator)
             MyHTTPRequestHandler.calculatedProfile = profileCalculator.calculate(MyHTTPRequestHandler.dataFile)
@@ -107,7 +107,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             result = ""
             all_rows = cursor.fetchall()
             for row in all_rows:
-                result += row
+                result += str(row)
 
             db.close()
 
