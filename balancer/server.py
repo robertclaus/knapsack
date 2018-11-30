@@ -3,7 +3,7 @@ from SocketServer import ThreadingMixIn
 import threading
 import urlparse, json
 import requests
-from importlib import reload
+import imp
 
 from scheduler import Scheduler
 from profileCalculator import ProfileCalculator
@@ -63,13 +63,13 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write("All profile data:\r\n{}".format(MyHTTPRequestHandler.profileData))
         elif "/calculateProfile" in parsed_path.path:
-            reload(profileCalculator)
+            imp.reload(profileCalculator)
             MyHTTPRequestHandler.calculatedProfile = ProfileCalculator.calculate(MyHTTPRequestHandler.profileData)
 
             self._set_headers()
             self.wfile.write("Calculated Profile {}".format(MyHTTPRequestHandler.calculatedProfile))
         elif "/runLambda" in parsed_path.path:
-            reload(scheduler)
+            imp.reload(scheduler)
             selectedWorker = Scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
 
             path = "http://{}:8080{}".format(selectedWorker, parsed_path.path)
