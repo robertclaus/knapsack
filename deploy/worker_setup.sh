@@ -15,4 +15,4 @@ make test-all
 
 cp -r ./quickstart/handlers/hello ./knapsack/registry/hello
 
-curl -d '{"workerName":"$WNAME"}' $MNAME/registerWorker
+curl -d "{\"workerName\":\"$WNAME\"}" $MNAME/registerWorker

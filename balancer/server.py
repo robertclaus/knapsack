@@ -42,6 +42,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write("Workers:{}".format(registeredWorkers))
         elif '/unregisterWorkers' in parsed_path.path:
+            registeredWorkers = []
             self._set_headers()
             self.wfile.write("Workers:{}".format(registeredWorkers))
         elif '/viewWorkers' in parsed_path.path:
