@@ -57,9 +57,13 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write("Received data for worker {}:\r\n{}".format(post_data.get('workerName'), post_data))
         elif "/runLambda" in parsed_path.path:
             selectedWorker = self._schedule()
-            r = requests.post("http://{}:8080{}".format(selectedWorker, parsed_path.path), data=post_data)
+            path = "http://{}:8080{}".format(selectedWorker, parsed_path.path)
+            request_data = post_data
+
+            r = requests.post(path, data=request_data)
             self.send_response(r.status_code, r.reason)
-            self.wfile.write(r.text)
+            #self.wfile.write(r.text)
+            self.wfile.write("Path: {}\r\nData: {}".format(path, request_data))
         elif "/status" in parsed_path.path:
             response = ""
             for worker in MyHTTPRequestHandler.registeredWorkers:
