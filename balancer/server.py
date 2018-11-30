@@ -16,6 +16,7 @@ import sqlite3
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
+    dataFile = "~/data/mydb"
     registeredWorkers = []
     profileData = defaultdict(list)
     calculatedProfile = defaultdict(list)
@@ -59,7 +60,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write("Workers:{}".format(MyHTTPRequestHandler.registeredWorkers))
         elif "/addToProfileData" in parsed_path.path:
             MyHTTPRequestHandler.profileData[post_data.get('workerName')].append(post_data)
-            db = sqlite3.connect('data/mydb')
+            db = sqlite3.connect(MyHTTPRequestHandler.dataFile)
             cursor = db.cursor()
             cursor.execute('''
                 CREATE TABLE IF NOT EXISTS profile_data(timestamp TEXT, pid TEXT, cmd TEXT, cpu TEXT, mem TEXT);
@@ -75,7 +76,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write("Received data for worker {}:\r\n{}".format(post_data.get('workerName'), post_data))
         elif "/profileData" in parsed_path.path:
-            db = sqlite3.connect('data/mydb')
+            db = sqlite3.connect(MyHTTPRequestHandler.dataFile)
             cursor = db.cursor()
             cursor.execute('''
                     CREATE TABLE IF NOT EXISTS profile_data(timestamp TEXT, pid TEXT, cmd TEXT, cpu TEXT, mem TEXT);
@@ -96,9 +97,9 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write("All profile data:\r\n{}".format(MyHTTPRequestHandler.profileData))
         elif "/calculateProfile" in parsed_path.path:
             imp.reload(profileCalculator)
-            MyHTTPRequestHandler.calculatedProfile = profileCalculator.calculate()
+            MyHTTPRequestHandler.calculatedProfile = profileCalculator.calculate(MyHTTPRequestHandler.dataFile)
 
-            db = sqlite3.connect('data/mydb')
+            db = sqlite3.connect(MyHTTPRequestHandler.dataFile)
 
             cursor = db.cursor()
             cursor.execute('''SELECT * FROM calculated_profiles''')

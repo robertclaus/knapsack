@@ -1,7 +1,7 @@
 import sqlite3
 
-def calculate():
-    db = sqlite3.connect('data/mydb')
+def calculate(dataFile):
+    db = sqlite3.connect(dataFile)
 
     cursor = db.cursor()
     cursor.execute('''
