@@ -40,7 +40,7 @@ def port_to_use(worker):
     db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
 
     cursor = db.cursor()
-    cursor.execute('''SELECT port, state FROM task_log WHERE worker='''+worker+''' ORDER BY timestamp DESC''')
+    cursor.execute("SELECT port, state FROM task_log WHERE worker='"+worker+"' ORDER BY timestamp DESC")
 
     closedPorts = {}
     all_rows = cursor.fetchall()
