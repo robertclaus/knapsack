@@ -5,8 +5,8 @@ import urlparse, json
 import requests
 import imp
 
-from scheduler import Scheduler
-from profileCalculator import ProfileCalculator
+import scheduler
+import profileCalculator
 
 from collections import defaultdict
 
@@ -63,14 +63,14 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write("All profile data:\r\n{}".format(MyHTTPRequestHandler.profileData))
         elif "/calculateProfile" in parsed_path.path:
-            imp.reload(ProfileCalculator)
-            MyHTTPRequestHandler.calculatedProfile = ProfileCalculator.calculate(MyHTTPRequestHandler.profileData)
+            imp.reload(profileCalculator)
+            MyHTTPRequestHandler.calculatedProfile = profileCalculator.ProfileCalculator.calculate(MyHTTPRequestHandler.profileData)
 
             self._set_headers()
             self.wfile.write("Calculated Profile {}".format(MyHTTPRequestHandler.calculatedProfile))
         elif "/runLambda" in parsed_path.path:
-            imp.reload(Scheduler)
-            selectedWorker = Scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
+            imp.reload(scheduler)
+            selectedWorker = scheduler.Scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
 
             path = "http://{}:8080{}".format(selectedWorker, parsed_path.path)
             request_data = post_data
