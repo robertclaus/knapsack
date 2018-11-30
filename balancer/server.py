@@ -3,7 +3,10 @@ from SocketServer import ThreadingMixIn
 import threading
 import urlparse, json
 import requests
-import random
+from importlib import reload
+
+from scheduler import Scheduler
+from profileCalculator import ProfileCalculator
 
 from collections import defaultdict
 
@@ -13,6 +16,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     registeredWorkers = []
     profileData = defaultdict(list)
+    calculatedProfile = defaultdict(list)
 
     def _set_headers(self, code=200):
         self.send_response(code)
@@ -51,12 +55,23 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
         elif '/viewWorkers' in parsed_path.path:
             self._set_headers()
             self.wfile.write("Workers:{}".format(MyHTTPRequestHandler.registeredWorkers))
-        elif "/addToProfile" in parsed_path.path:
+        elif "/addToProfileData" in parsed_path.path:
             MyHTTPRequestHandler.profileData[post_data.get('workerName')].append(post_data)
             self._set_headers()
             self.wfile.write("Received data for worker {}:\r\n{}".format(post_data.get('workerName'), post_data))
+        elif "/profileData" in parsed_path.path:
+            self._set_headers()
+            self.wfile.write("All profile data:\r\n{}".format(MyHTTPRequestHandler.profileData))
+        elif "/calculateProfile" in parsed_path.path:
+            reload(profileCalculator)
+            MyHTTPRequestHandler.calculatedProfile = ProfileCalculator.calculate(MyHTTPRequestHandler.profileData)
+
+            self._set_headers()
+            self.wfile.write("Calculated Profile {}".format(MyHTTPRequestHandler.calculatedProfile))
         elif "/runLambda" in parsed_path.path:
-            selectedWorker = self._schedule()
+            reload(scheduler)
+            selectedWorker = Scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
+
             path = "http://{}:8080{}".format(selectedWorker, parsed_path.path)
             request_data = post_data
 
@@ -73,12 +88,6 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
         else:
             self._set_headers()
             self.wfile.write("Not a recognized path")
-
-    def _schedule(self):
-        return self._schedule__Random(MyHTTPRequestHandler.registeredWorkers)
-
-    def _schedule__Random(self, workerList):
-        return random.choice(workerList)
 
 class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
     """Handle requests in a separate thread."""
