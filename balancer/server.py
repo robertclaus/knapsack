@@ -27,11 +27,15 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
         self._handle_request()
 
     def _handle_request(self):
-        # Doesn't do anything with posted data
-        content_len = int(self.headers.getheader('content-length'))
         parsed_path = urlparse.urlparse(self.path)
-        post_body = self.rfile.read(content_len)
-        post_data = json.loads(post_body)
+
+        if self.headers.getheader('content-length'):
+            content_len = int(self.headers.getheader('content-length'))
+            post_body = self.rfile.read(content_len)
+            post_data = json.loads(post_body)
+        else:
+            post_data = {}
+
 
         if '/registerWorker' in parsed_path.path:
             registeredWorkers.append(post_data.get('workerName'))
