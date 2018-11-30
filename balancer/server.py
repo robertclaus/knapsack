@@ -16,7 +16,7 @@ import sqlite3
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
-    dataFile = "~/data/mydb"
+    dataFile = "/tmp/KnapsackDB"
     registeredWorkers = []
     profileData = defaultdict(list)
     calculatedProfile = defaultdict(list)
