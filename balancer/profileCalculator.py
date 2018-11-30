@@ -1,5 +1,3 @@
 
-
-class ProfileCalculator():
-    def calculate(profileData):
-        return {}
+def calculate(profileData):
+    return {}

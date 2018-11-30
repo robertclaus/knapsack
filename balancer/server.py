@@ -64,13 +64,13 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write("All profile data:\r\n{}".format(MyHTTPRequestHandler.profileData))
         elif "/calculateProfile" in parsed_path.path:
             imp.reload(profileCalculator)
-            MyHTTPRequestHandler.calculatedProfile = profileCalculator.ProfileCalculator.calculate(MyHTTPRequestHandler.profileData)
+            MyHTTPRequestHandler.calculatedProfile = profileCalculator.calculate(MyHTTPRequestHandler.profileData)
 
             self._set_headers()
             self.wfile.write("Calculated Profile {}".format(MyHTTPRequestHandler.calculatedProfile))
         elif "/runLambda" in parsed_path.path:
             imp.reload(scheduler)
-            selectedWorker = scheduler.Scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
+            selectedWorker = scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
 
             path = "http://{}:8080{}".format(selectedWorker, parsed_path.path)
             request_data = post_data
