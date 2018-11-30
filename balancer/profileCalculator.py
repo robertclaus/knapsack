@@ -1,5 +1,5 @@
 import sqlite3
-import constants
+import const
 from collections import defaultdict
 
 def calculate(dataFile):
@@ -7,7 +7,7 @@ def calculate(dataFile):
 
 
 def insert_profile(task, timestamp, cpu):
-    db = sqlite3.connect(constants.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
+    db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
 
     cursor = db.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS calculated_profiles(task TEXT, timeoffset INT, cpu INT);''')
@@ -20,7 +20,7 @@ def insert_profile(task, timestamp, cpu):
     db.close()
 
 def getTaskProfiles():
-    db = sqlite3.connect(constants.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
+    db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
 
     cursor = db.cursor()
     cursor.execute('''SELECT task, timeoffset, cpu FROM profile_data''')

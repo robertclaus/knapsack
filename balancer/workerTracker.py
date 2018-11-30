@@ -1,16 +1,16 @@
 import sqlite3
-import constants
+import const
 import datetime
 
 def init(workers):
-    db = sqlite3.connect(constants.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
+    db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
 
     cursor = db.cursor()
     cursor.execute('''CREATE TABLE IF NOT EXISTS task_log(worker TEXT, port INT, task TEXT, timestamp timestamp, state INT);''')
     db.commit()
 
     for worker in workers:
-        for port in constants.ports:
+        for port in const.ports:
             cursor = db.cursor()
             cursor.execute('''INSERT INTO task_log(worker, port, timestamp, task, state) VALUES(?,?,?,?,?)''', (worker, port, "None", datetime.datetime.now(), 1))
             db.commit()
@@ -19,7 +19,7 @@ def init(workers):
 
 
 def worker_start(worker, port, task, timestamp):
-    db = sqlite3.connect(constants.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
+    db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
 
     cursor = db.cursor()
     cursor.execute('''INSERT INTO task_log(worker, port, timestamp, task, state) VALUES(?,?,?,?,?)''', (worker, port, task, timestamp, 0))
@@ -28,7 +28,7 @@ def worker_start(worker, port, task, timestamp):
     db.close()
 
 def worker_end(worker, port, task, timestamp):
-    db = sqlite3.connect(constants.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
+    db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
 
     cursor = db.cursor()
     cursor.execute('''INSERT INTO task_log(worker, port, timestamp, task, state) VALUES(?,?,?,?,?)''', (worker, port, task, timestamp, 1))
@@ -37,7 +37,7 @@ def worker_end(worker, port, task, timestamp):
     db.close()
 
 def port_to_use(worker):
-    db = sqlite3.connect(constants.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
+    db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
 
     cursor = db.cursor()
     cursor.execute('''SELECT port, state FROM task_log WHERE worker=? ORDER BY timestamp DESC''',(worker))
