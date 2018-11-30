@@ -1,41 +1,79 @@
 from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
-import SocketServer
+from SocketServer import ThreadingMixIn
+import threading
 import urlparse, json
+import requests
+import random
+
+from collections import defaultdict
 
 registeredWorkers = []
+profileData = defaultdict(list)
 
-class S(BaseHTTPRequestHandler):
+class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def _set_headers(self):
         self.send_response(200)
         self.send_header('Content-type', 'text/html')
         self.end_headers()
 
-    def do_GET(self):
-        self._set_headers()
-        self.wfile.write("<html><body><h1>hi!</h1></body></html>")
-
     def do_HEAD(self):
         self._set_headers()
+
+    def do_GET(self):
+        self._handle_request()
         
     def do_POST(self):
-        # Doesn't do anything with posted data
-	content_len = int(self.headers.getheader('content-length'))
-	parsed_path = urlparse.urlparse(self.path)
-	post_body = self.rfile.read(content_len)
-	data = json.loads(post_body)
-	print(parsed_path)
-	print(post_body)
-	if parsed_path.path == '/registerWorker':
-		registeredWorkers.append(data.get('workerName'))
-	else:
-		print("Should forward to one of {}".format(registeredWorkers))
+        self._handle_request()
 
-	print(registeredWorkers)
-        self._set_headers()
-        self.wfile.write("<html><body><h1>POST!</h1></body></html>")
-        
-def run(server_class=HTTPServer, handler_class=S, port=80):
+    def _handle_request(self):
+        # Doesn't do anything with posted data
+        content_len = int(self.headers.getheader('content-length'))
+        parsed_path = urlparse.urlparse(self.path)
+        post_body = self.rfile.read(content_len)
+        post_data = json.loads(post_body)
+
+        if '/registerWorker' in parsed_path.path:
+            registeredWorkers.append(post_data.get('workerName'))
+            self._set_headers()
+            self.wfile.write("Workers:{}".format(registeredWorkers))
+        elif '/unregisterWorkers' in parsed_path.path:
+            self._set_headers()
+            self.wfile.write("Workers:{}".format(registeredWorkers))
+        elif '/viewWorkers' in parsed_path.path:
+            self._set_headers()
+            self.wfile.write("Workers:{}".format(registeredWorkers))
+        elif "/addToProfile" in parsed_path.path:
+            profileData[post_data.get('workerName')].append(post_data)
+            self._set_headers()
+            self.wfile.write("Received data for worker {}:\r\n{}".format(post_data.get('workerName'), post_data))
+        elif "/runLambda" in parsed_path.path:
+            selectedWorker = self._schedule()
+            r = requests.post("{}{}".format(selectedWorker, parsed_path.path), data=post_data)
+            self.send_response(r.status_code, r.reason)
+            self.wfile.write(r.text)
+        elif "/status" in parsed_path.path:
+            response = ""
+            for worker in registeredWorkers:
+                r = requests.post("{}{}".format(worker, parsed_path.path), data=post_data)
+                response += "\r\n\r\n{}:\r\n{}\r\n".format(worker, r.text)
+            self._set_headers()
+            self.wfile.write(response)
+        else:
+            self._set_headers()
+            self.wfile.write("Not a recognized path")
+
+    def _schedule(self):
+        return self._schedule__Random(registeredWorkers)
+
+    def _schedule__Random(self, workerList):
+        return random.choice(workerList)
+
+class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
+    """Handle requests in a separate thread."""
+
+
+def run(server_class=ThreadedHTTPServer, handler_class=MyHTTPRequestHandler, port=80):
     server_address = ('', port)
     httpd = server_class(server_address, handler_class)
     print 'Starting httpd...'

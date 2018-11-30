@@ -1,6 +1,3 @@
-sudo apt-get update
-sudo apt-get -y install postgresql
-
 mkdir /local/knapsack
 cd /local/knapsack
 git clone https://github.com/robertclaus/knapsack.git
