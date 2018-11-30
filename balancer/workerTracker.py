@@ -1,6 +1,7 @@
 import sqlite3
 import const
 import datetime
+from collections import defaultdict
 
 def init(workers):
     db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
@@ -42,7 +43,7 @@ def port_to_use(worker):
     cursor = db.cursor()
     cursor.execute("SELECT port, state FROM task_log WHERE worker='"+worker+"' ORDER BY timestamp DESC")
 
-    closedPorts = {}
+    closedPorts = defaultdict(lambda: False)
     all_rows = cursor.fetchall()
     for row in all_rows:
         if closedPorts[row[0]] or row[1] == 1:
