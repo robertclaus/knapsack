@@ -10,6 +10,8 @@ import profileCalculator
 
 from collections import defaultdict
 
+import sqlite3
+
 
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -57,17 +59,59 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write("Workers:{}".format(MyHTTPRequestHandler.registeredWorkers))
         elif "/addToProfileData" in parsed_path.path:
             MyHTTPRequestHandler.profileData[post_data.get('workerName')].append(post_data)
+            db = sqlite3.connect('data/mydb')
+            cursor = db.cursor()
+            cursor.execute('''
+                CREATE TABLE IF NOT EXISTS profile_data(timestamp TEXT, pid TEXT, cmd TEXT, cpu TEXT, mem TEXT);
+            ''')
+            db.commit()
+
+            cursor = db.cursor()
+            cursor.execute('''INSERT INTO profile_data(timestamp, pid, cmd, cpu, mem)
+                  VALUES(?,?,?,?,?)''', (post_data.get('Timestamp'), post_data.get('PID'), post_data.get('Cmd'), post_data.get('cpu'), post_data.get('mem')))
+            db.commit()
+
+            db.close()
             self._set_headers()
             self.wfile.write("Received data for worker {}:\r\n{}".format(post_data.get('workerName'), post_data))
         elif "/profileData" in parsed_path.path:
+            db = sqlite3.connect('data/mydb')
+            cursor = db.cursor()
+            cursor.execute('''
+                    CREATE TABLE IF NOT EXISTS profile_data(timestamp TEXT, pid TEXT, cmd TEXT, cpu TEXT, mem TEXT);
+                ''')
+            db.commit()
+
+            cursor = db.cursor()
+            cursor.execute('''SELECT * FROM profile_data''')
+
+            result = ""
+            all_rows = cursor.fetchall()
+            for row in all_rows:
+                result += row
+
+            db.close()
+
             self._set_headers()
             self.wfile.write("All profile data:\r\n{}".format(MyHTTPRequestHandler.profileData))
         elif "/calculateProfile" in parsed_path.path:
             imp.reload(profileCalculator)
-            MyHTTPRequestHandler.calculatedProfile = profileCalculator.calculate(MyHTTPRequestHandler.profileData)
+            MyHTTPRequestHandler.calculatedProfile = profileCalculator.calculate()
+
+            db = sqlite3.connect('data/mydb')
+
+            cursor = db.cursor()
+            cursor.execute('''SELECT * FROM calculated_profiles''')
+
+            result = ""
+            all_rows = cursor.fetchall()
+            for row in all_rows:
+                result += row
+
+            db.close()
 
             self._set_headers()
-            self.wfile.write("Calculated Profile {}".format(MyHTTPRequestHandler.calculatedProfile))
+            self.wfile.write("Calculated Profile {}".format(result))
         elif "/runLambda" in parsed_path.path:
             imp.reload(scheduler)
             selectedWorker = scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
