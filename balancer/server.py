@@ -61,9 +61,8 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             request_data = post_data
 
             r = requests.post(path, json=request_data)
+            self.wfile.write(r.text)
             self.send_response(r.status_code, r.reason)
-            #self.wfile.write(r.text)
-            self.wfile.write("Path: {}\r\nData: {}".format(path, request_data))
         elif "/status" in parsed_path.path:
             response = ""
             for worker in MyHTTPRequestHandler.registeredWorkers:
