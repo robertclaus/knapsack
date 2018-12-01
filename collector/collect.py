@@ -2,12 +2,11 @@ import os
 import pandas as pd
 
 tempfilename = "tempdatafile.txt"
-username = "anujagolechha"
 resultfilename = "usage.csv"
 delay = 0.01
 niterations = 10
 
-cmd = "top -u " + username + " -b -d " + str(delay) + " -n " + str(niterations) + " | awk '{print $1 \",\" $2 \",\" $12 \",\" $9 \",\" $10}' | awk '{ system(\"date +%s\"); print $0 }' > " + tempfilename
+cmd = "top -u root -b -d " + str(delay) + " -n " + str(niterations) + " | grep python | awk '{print $1 \",\" $2 \",\" $12 \",\" $9 \",\" $10}' | awk '{ system(\"date +%s\"); print $0 }' > " + tempfilename
 print cmd, type(cmd)
 os.system(cmd)
 

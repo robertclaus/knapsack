@@ -15,6 +15,7 @@ from collections import defaultdict
 
 import sqlite3
 
+import time
 
 
 class MyHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -23,6 +24,8 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     registeredWorkers = []
     profileData = defaultdict(list)
     calculatedProfile = defaultdict(list)
+    startEndTimes = [] # task number, start time, end time
+    currentTaskNumber = 0 # increment at each handler call
 
     def _set_headers(self, code=200):
         self.send_response(code)
@@ -35,7 +38,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
     def do_GET(self):
         self._handle_request()
-        
+
     def do_POST(self):
         self._handle_request()
 
@@ -120,9 +123,26 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             path = "http://{}:{}{}".format(selectedWorker, port, parsed_path.path)
             request_data = post_data
 
+            # get name of handler
+            tempindex = parsed_path.path.index("/runLambda") + len("/runLambda")
+            tempname = parsed_path.path[tempindex:]
+            templist = ["task" + str(self.currentTaskNumber) + "_" + tempname, None, None]
+
+            # store start time for current task
+            templist[1] = int(time.time())
+
             workerTracker.worker_start(selectedWorker,port, parsed_path.path, datetime.datetime.now())
             r = requests.post(path, json=request_data)
             workerTracker.worker_end(selectedWorker,port, parsed_path.path, datetime.datetime.now())
+
+            # store end time for current task
+            templist[2] = int(time.time())
+
+            # increment currentTaskNumber
+            self.currentTaskNumber += 1
+
+            # TODO
+            # manage times in case of concurrent calls to multiple handlers
 
             self._set_headers(r.status_code)
             self.wfile.write(r.text)
