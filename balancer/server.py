@@ -153,6 +153,13 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
                 response += "\r\n\r\n{}:\r\n{}\r\n".format(worker, r.text)
             self._set_headers()
             self.wfile.write(response)
+        elif "/lambdaStats" in parsed_path.path:
+            response = ""
+            for ele in self.startEndTimes:
+                response += ",".join(ele)
+                response += "\n"
+            self._set_headers()
+            self.wfile.write(response)
         else:
             self._set_headers()
             self.wfile.write("Not a recognized path")
