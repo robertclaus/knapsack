@@ -46,7 +46,7 @@ for i in range(n):
         reqdIndices.append(i)
         prevval = df.iloc[i]["CPU"]
 
-df = df[reqdIndices]
+df = df.iloc[reqdIndices]
 
 df.reset_index(drop=True, inplace=True)
 df.to_csv(resultfilename)
