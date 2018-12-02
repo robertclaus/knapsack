@@ -155,8 +155,8 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self.wfile.write(response)
         elif "/lambdaStats" in parsed_path.path:
             response = ""
-            response += json.dumps(startEndTimes)
-            
+            lambdaStatsData = json.dumps(startEndTimes)
+            response += "\r\n\r\n{}:\r\n{}\r\n".format("lambdaStatsData", lambdaStatsData)
             self._set_headers()
             self.wfile.write(response)
         else:
