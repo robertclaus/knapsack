@@ -4,7 +4,7 @@ import pandas as pd
 tempfilename = "tempdatafile.txt"
 resultfilename = "usage.csv"
 delay = 0.01
-niterations = 10
+niterations = 3000
 
 cmd = "top -u root -b -d " + str(delay) + " -n " + str(niterations) + " | grep python | awk '{print $1 \",\" $2 \",\" $12 \",\" $9 \",\" $10}' | awk '{ system(\"date +%s\"); print $0 }' > " + tempfilename
 print cmd, type(cmd)
@@ -34,6 +34,19 @@ df = df[range(6)]
 df.rename(columns=columns, inplace=True)
 
 df = df[df["PID"].apply(lambda x:x.isdigit())]
-df = df.sort_values(["PID"])
+df = df.sort_values(["PID"]) # not really required any more
+
+# compression step, remove
+reqdIndices = []
+prevval = None
+
+n = len(df)
+for i in range(n):
+    if df.iloc[i]["CPU"] != prevval:
+        reqdIndices.append(i)
+        prevval = df.iloc[i]["CPU"]
+
+df = df[reqdIndices]
+
 df.reset_index(drop=True, inplace=True)
 df.to_csv(resultfilename)
