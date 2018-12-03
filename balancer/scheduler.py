@@ -1,21 +1,24 @@
 import random
 import numpy as np
 import server
+from profileCalculator import getTaskProfiles, insert_profile, getUsage, addUsage
 
-
-def schedule(workerList, path, post_data):
-    # return schedule__Random(workerList)
-    return schedule__withProfile(task_id, workerList, task_profile, usage_profile)
+def schedule(workerList, task_id, path, post_data):
+    # schedule__Random(workerList, task_id)
+    schedule__withProfile(task_id, workerList)
 
 def schedule__Random(workerList):
-    return random.choice(workerList)
+    addUsage(random.choice(workerList), task_id)
 
 def schedule__withProfile(task_id, workerList):
     earliest_schedule_time_list = np.array(workList.size())
+    all_worker_usage = getUsage()
+    task_profile = getTaskProfiles()
     for i, each_worker in enumerate(workerList):
-        earliest_schedule_time_list[i] = earliest_schedule_time(server.getUsage(), server.getProfile());
+        earliest_schedule_time_list[i] = earliest_schedule_time(all_worker_usage[i], task_profile);
     sorted_idx = np.argsort(earliest_schedule_time_list)
-    return workerList[sorted_idx[0]]
+    addUsage(workerList[sorted_idx[0]], task_id)
+    return 
 
 def can_schedule(available_rss, required_rss):
     if available_rss.size != required_rss.size:
