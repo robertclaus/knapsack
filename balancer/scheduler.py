@@ -3,12 +3,15 @@ import numpy as np
 import server
 from profileCalculator import getTaskProfiles, insert_profile, getUsage, addUsage
 
-def schedule(workerList, task_id, path, post_data):
-    # schedule__Random(workerList, task_id)
-    schedule__withProfile(task_id, workerList)
+def schedule(workerList, task_id, post_data):
+    return schedule__Random(workerList, task_id)
+    #schedule__withProfile(task_id, workerList)
 
-def schedule__Random(workerList):
-    addUsage(random.choice(workerList), task_id)
+def schedule__Random(workerList, task_id):
+    worker = random.choice(workerList)
+    #addUsage(worker, task_id)
+    return worker
+
 
 def schedule__withProfile(task_id, workerList):
     earliest_schedule_time_list = np.array(workList.size())

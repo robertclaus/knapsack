@@ -44,9 +44,3 @@ def getUsage():
 
 def addUsage(worker, task):
     taskProfile = getTaskProfiles()[task]
-    '''insert or replace into Book (ID, Name, TypeID, Level, Seen) values (
-   (select ID from Book where Name = "SearchName"),
-   "SearchName",
-    5,
-    6,
-    (select Seen from Book where Name = "SearchName"));'''
