@@ -3,4 +3,6 @@ import scheduler
 
 registeredWorkers = ['myWorker']
 
-scheduler.schedule(registeredWorkers, parsed_path.path, post_data)
+workerToUse = scheduler.schedule(registeredWorkers, "/runLambda/step30", "")
+
+assert workerToUse == 'myWorker'
