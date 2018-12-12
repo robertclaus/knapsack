@@ -19,12 +19,13 @@ def schedule__withProfile(task_id, workerList):
     earliest_schedule_time_list = np.array(len(workerList))
     all_worker_usage = getUsage(granularity)
     task_profile = getTaskProfile(task_id)
-    profile_interval = task_profile["interval"]
+    profile_interval = np.array(task_profile["interval"])
     cum_sum_profile_interval = np.cumsum(profile_interval)
+    print(cum_sum_profile_interval)
     # ticks should have same dimension as profile_interval
-    ticks = np.int(np.ceil(cum_sum_profile_interval/ granularity))
+    ticks = np.ceil(cum_sum_profile_interval / granularity).astype(int)
     profile_usage = np.empty(ticks[-1])
-    for i in range(ticks):
+    for i in range(ticks.shape[0]):
         if i == 0:
             start = 0
         else:

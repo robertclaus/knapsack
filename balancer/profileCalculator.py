@@ -61,8 +61,8 @@ def add_to_usage(total_usage, each_profile_obj, current_timestamp, granularity):
             aligned_usage.append(profile_usage[i+1: -1])
     # convert aligned_usage and aligned_interval to the form needed for sceduler
     cum_sum_profile_interval = np.cumsum(aligned_interval)
-    ticks = np.int(np.ceil(cum_sum_profile_interval/ granularity))
-    for i in range(ticks):
+    ticks = np.ceil(cum_sum_profile_interval/ granularity).astype(int)
+    for i in range(ticks.shape[0]):
         if i == 0:
             start = 0
         else:
