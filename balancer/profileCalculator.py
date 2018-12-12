@@ -19,26 +19,6 @@ def insert_profile(task, timestamp, cpu):
 
     db.close()
 
-def getTaskProfiles():
-    db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)
-
-    cursor = db.cursor()
-    cursor.execute('''SELECT task, timeoffset, cpu FROM profile_data''')
-
-    result = defaultdict(list)
-
-    all_rows = cursor.fetchall()
-    for row in all_rows:
-        result[row[0]].append((row[1],row[2]))
-
-    db.close()
-
-    for key,value in result:
-        value.sort(key=lambda x: x[0], reverse=True)
-        map(lambda x: x[1], value)
-
-    return result
-
 def getUsage():
     return [0]
 
