@@ -4,6 +4,7 @@ from collections import defaultdict
 import numpy as np
 import time
 from workerTracker import running_tasks
+import datetime
 
 def calculate(dataFile):
     insert_profile("test", 0, 100)
@@ -25,14 +26,13 @@ def insert_profile(task, timestamp, cpu):
 def getUsage():
     granularity = 0.01 # unit in sec
     current_timestamp = time.time()
-    active_profiles = getActiveTaskProfiles(current_timestamp)
-    [usage, interval] = cal_total_usage(active_profiles, current_timestamp, granularity)
+    return cal_total_usage(current_timestamp, granularity)
 
 # each profile is in the form of {'start', 'end', 'usage', 'interval'}
 
-def cal_total_usage(active_profiles, current_timestamp, granularity):
+def cal_total_usage( current_timestamp, granularity):
     max_task_length = 20 # maximum task length, unit second
-    total_usage = np.array([0]* max_task_length/granularity)
+    total_usage = np.array([0]* np.int(max_task_length/granularity))
     active_profiles = running_tasks()
     for each_profile_obj in active_profiles:
         add_to_usage(total_usage, each_profile_obj, current_timestamp)
@@ -41,7 +41,9 @@ def cal_total_usage(active_profiles, current_timestamp, granularity):
 
 def add_to_usage(total_usage, each_profile_obj, current_timestamp, granularity):
     # each profile here starts earlier than current timestamp and ends later than current timestamp
-    profile_start = each_profile_obj["start"]
+    profile_start_datetime = each_profile_obj["start"]
+    profile_start = (profile_start_datetime - datetime.datetime.utcfromtimestamp(0)).total_seconds()
+
     profile_end = each_profile_obj["end"]
     profile_usage = each_profile_obj["usage"]
     profile_interval = each_profile_obj["interval"]

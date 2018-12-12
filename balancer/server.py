@@ -122,6 +122,10 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             #imp.reload(scheduler)
             selectedWorker = scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
 
+            if selectedWorker is None:
+                self._set_headers(500)
+                self.wfile.write("No worker available with CPU.")
+
             port = workerTracker.port_to_use(selectedWorker)
             path = "http://{}:{}{}".format(selectedWorker, port, parsed_path.path)
             request_data = post_data
