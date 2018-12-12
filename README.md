@@ -25,8 +25,15 @@ sudo bash worker_setup.sh master.Knapsack05.uwmadison744-f18-PG0.wisc.cloudlab.u
 4. rm -r knapsack
 
 ### Workers
-1. cd /local/openLambda/open-lambda
-2. ./bin/admin kill -cluster=my-cluster
-3. rm -r my-cluster
-4. cd /local
-5. rm -r openLambda
+Check for any process using 8080: netstat -ltnp
+Kill the workers cleanly if possible and reset the entire cluster:
+
+sudo ./bin/admin kill -cluster=knapsack
+sudo rm -r knapsack/
+sudo ./bin/admin new -cluster knapsack
+sudo ./bin/admin setconf --cluster=knapsack "{\"startup_pkgs\":[\"requests\", \"multiprocessing\", \"numpy\"]}"
+sudo ./bin/admin workers -cluster=knapsack -n 10
+sudo cp -r ./quickstart/handlers/hello ./knapsack/registry/hello
+sudo cp -r ./lambdas/* ./knapsack/registry/
+sudo chmod -R +777 knapsack/
+

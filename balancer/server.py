@@ -116,6 +116,9 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write("Calculated Profile {}".format(result))
         elif "/runLambda" in parsed_path.path:
+            if len(MyHTTPRequestHandler.registeredWorkers)<1:
+                self._set_headers(500)
+                self.wfile.write("No workers registered.")
             #imp.reload(scheduler)
             selectedWorker = scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
 
