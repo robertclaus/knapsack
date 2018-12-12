@@ -23,8 +23,8 @@ def insert_profile(task, timestamp, cpu):
 
     db.close()
 
-def getUsage():
-    granularity = 0.01 # unit in sec
+def getUsage(granularity):
+    # granularity unit in sec
     current_timestamp = time.time()
     return cal_total_usage(current_timestamp, granularity)
 

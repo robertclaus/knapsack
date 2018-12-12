@@ -15,11 +15,26 @@ def schedule__Random(workerList, task_id):
 
 
 def schedule__withProfile(task_id, workerList):
+    granularity = 0.01
     earliest_schedule_time_list = np.array(len(workerList))
-    all_worker_usage = getUsage()
+    all_worker_usage = getUsage(granularity)
     task_profile = getTaskProfile(task_id)
+    profile_interval = task_profile["interval"]
+    cum_sum_profile_interval = np.cumsum(profile_interval)
+    # ticks should have same dimension as profile_interval
+    ticks = np.int(np.ceil(cum_sum_profile_interval/ granularity))
+    profile_usage = np.empty(ticks[-1])
+    for i in range(ticks):
+        if i == 0:
+            start = 0
+        else:
+            start = ticks[i-1]+1
+        end = ticks[i]
+        profile_usage[start:end] = profile_usage[start:end] + profile_interval[i]
+
+
     for i, each_worker in enumerate(workerList):
-        earliest_schedule_time_list[i] = earliest_schedule_time(all_worker_usage[i], task_profile);
+        earliest_schedule_time_list[i] = earliest_schedule_time(all_worker_usage[i], profile_usage)
     sorted_idx = np.argsort(earliest_schedule_time_list)
     addUsage(workerList[sorted_idx[0]], task_id)
     return workerList[0] if earliest_schedule_time_list[0] == 0 else None
