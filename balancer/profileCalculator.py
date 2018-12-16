@@ -32,33 +32,41 @@ def getUsage(granularity):
 
 def cal_total_usage( current_timestamp, granularity):
     max_task_length = 20 # maximum task length, unit second
-    total_usage = np.array([0]* np.int(max_task_length/granularity))
+    total_usage = np.array([0.0]* np.int(max_task_length/granularity))
     active_profiles = running_tasks()
+    # print("number of active profiles are ", len(active_profiles))
     for each_profile_obj in active_profiles:
-        add_to_usage(total_usage, each_profile_obj, current_timestamp)
+        total_usage = add_to_usage(total_usage, each_profile_obj, current_timestamp, granularity)
 
     return total_usage
 
 def add_to_usage(total_usage, each_profile_obj, current_timestamp, granularity):
     # each profile here starts earlier than current timestamp and ends later than current timestamp
     profile_start_datetime = each_profile_obj["start"]
-    profile_start = (profile_start_datetime - datetime.datetime.utcfromtimestamp(0)).total_seconds()
+    profile_start = (profile_start_datetime - datetime.datetime.utcfromtimestamp(0)).total_seconds() + 21600
 
+    #print(profile_start)
+    #print(current_timestamp)
     profile_end = each_profile_obj["end"]
-    profile_usage = each_profile_obj["usage"]
-    profile_interval = each_profile_obj["interval"]
+    profile_usage = np.array(each_profile_obj["usage"])
+    profile_interval = np.array(each_profile_obj["interval"])
     tmp_timestamp = profile_start
     aligned_interval = None
     aligned_usage = None
+
+    new_total_usage = total_usage
     for i in range(profile_interval.shape[0]):
         tmp_timestamp = tmp_timestamp + profile_interval[i]
+        #print(tmp_timestamp, current_timestamp)
         if  tmp_timestamp < current_timestamp:
             continue
         else:
+            # print("Find the interval")
             aligned_interval = np.array([tmp_timestamp - current_timestamp])
-            aligned_usage = profile_usage[i]
-            aligned_interval.append(profile_interval[i+1: -1])
-            aligned_usage.append(profile_usage[i+1: -1])
+            aligned_usage = np.array([profile_usage[i]])
+            aligned_interval = np.append(aligned_interval, profile_interval[i+1: -1])
+            aligned_usage = np.append(aligned_usage, profile_usage[i+1: -1])
+            break
     # convert aligned_usage and aligned_interval to the form needed for sceduler
     cum_sum_profile_interval = np.cumsum(aligned_interval)
     ticks = np.ceil(cum_sum_profile_interval/ granularity).astype(int)
@@ -68,10 +76,17 @@ def add_to_usage(total_usage, each_profile_obj, current_timestamp, granularity):
         else:
             start = ticks[i-1]+1
         end = ticks[i]
-        total_usage[start:end] = total_usage[start:end] + aligned_usage[i]
+       # print(total_usage[start:end] + np.array([aligned_usage[i]]))
+        new_total_usage[start:end] = total_usage[start:end] + np.array([aligned_usage[i]])
+        # for j in range(start, end+1):
+        #     new_total_usage[j] = total_usage[j]*1.0 + aligned_usage[i]
+        #print(aligned_usage[i])
+        #print(new_total_usage)
 
-    if(np.any(total_usage > 1.0)):
+    if np.any(new_total_usage > 1.0):
         print("Error")
+    return new_total_usage
 
 def addUsage(worker, task):
-    taskProfile = getTaskProfiles()[task]
+    pass
+    # taskProfile = getTaskProfiles()[task]

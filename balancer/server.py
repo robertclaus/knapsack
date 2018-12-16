@@ -26,6 +26,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     calculatedProfile = defaultdict(list)
     startEndTimes = [] # task number, start time, end time
     currentTaskNumber = 0 # increment at each handler call
+    myLock = None
 
     def _set_headers(self, code=200):
         self.send_response(code)
@@ -119,26 +120,34 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             if len(MyHTTPRequestHandler.registeredWorkers)<1:
                 self._set_headers(500)
                 self.wfile.write("No workers registered.")
+                return
             #imp.reload(scheduler)
-            selectedWorker = scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
 
-            if selectedWorker is None:
-                self._set_headers(500)
-                self.wfile.write("No worker available with CPU.")
+            MyHTTPRequestHandler.myLock.acquire()
+            try:
+                selectedWorker = scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
 
-            port = workerTracker.port_to_use(selectedWorker)
-            path = "http://{}:{}{}".format(selectedWorker, port, parsed_path.path)
-            request_data = post_data
+                if selectedWorker is None:
+                    self._set_headers(503)
+                    self.wfile.write("No worker available with CPU.")
+                    return
 
-            # get name of handler
-            tempindex = parsed_path.path.index("/runLambda") + len("/runLambda")
-            tempname = parsed_path.path[tempindex:]
-            templist = ["task" + str(self.currentTaskNumber) + "_" + tempname, None, None]
+                port = workerTracker.port_to_use(selectedWorker)
+                path = "http://{}:{}{}".format(selectedWorker, port, parsed_path.path)
+                request_data = post_data
 
-            # store start time for current task
-            templist[1] = int(time.time())
+                # get name of handler
+                tempindex = parsed_path.path.index("/runLambda") + len("/runLambda")
+                tempname = parsed_path.path[tempindex:]
+                templist = ["task" + str(self.currentTaskNumber) + "_" + tempname, None, None]
 
-            workerTracker.worker_start(selectedWorker,port, parsed_path.path, datetime.datetime.now())
+                # store start time for current task
+                templist[1] = int(time.time())
+
+                workerTracker.worker_start(selectedWorker,port, parsed_path.path, datetime.datetime.now())
+            finally:
+                MyHTTPRequestHandler.myLock.release()
+
             r = requests.post(path, json=request_data)
             workerTracker.worker_end(selectedWorker,port, parsed_path.path, datetime.datetime.now())
 
@@ -153,6 +162,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
             self._set_headers(r.status_code)
             self.wfile.write(r.text)
+
         elif "/status" in parsed_path.path:
             response = ""
             for worker in MyHTTPRequestHandler.registeredWorkers:
@@ -176,6 +186,7 @@ class ThreadedHTTPServer(ThreadingMixIn, HTTPServer):
 
 def run(server_class=ThreadedHTTPServer, handler_class=MyHTTPRequestHandler, port=80):
     server_address = ('', port)
+    handler_class.myLock = threading.Lock()
     httpd = server_class(server_address, handler_class)
     print 'Starting httpd...'
     httpd.serve_forever()
