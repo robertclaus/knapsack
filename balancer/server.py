@@ -187,7 +187,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
                 # get name of handler
                 tempindex = parsed_path.path.index("/runLambda") + len("/runLambda")
                 tempname = parsed_path.path[tempindex:]
-                templist = ["task" + str(self.currentTaskNumber) + "_" + tempname, None, None]
+                templist = ["task" + str(self.currentTaskNumber), tempname, None, None]
 
                 # store start time for current task
                 templist[2] = int(time.time())
@@ -220,8 +220,8 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
         elif "/lambdaStats" in parsed_path.path:
             # TODO debugging for profiling
             # return taskUsageStats dict
-            # self._set_headers()
-            # self.wfile.write(str(taskUsageStats))
+            self._set_headers()
+            self.wfile.write(str(taskUsageStats))
 
         else:
             self._set_headers()
