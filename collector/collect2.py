@@ -51,6 +51,6 @@ def handler(event):
 
         df.reset_index(drop=True, inplace=True)
 
-        return json.dumps(df.to_csv())
+        return df.to_json() #json.dumps(df.to_csv())
     except Exception as e:
         return {'error': str(e)}
