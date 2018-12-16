@@ -209,11 +209,9 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write(response)
         elif "/lambdaStats" in parsed_path.path:
-            response = ""
-            lambdaStatsData = json.dumps(startEndTimes)
-            response += "\r\n\r\n{}:\r\n{}\r\n".format("lambdaStatsData", lambdaStatsData)
-            self._set_headers()
-            self.wfile.write(response)
+            # TODO debugging for profiling
+            # return taskUsageStats dict
+            pass
 
         else:
             self._set_headers()
