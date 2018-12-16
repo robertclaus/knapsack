@@ -211,7 +211,8 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
         elif "/lambdaStats" in parsed_path.path:
             # TODO debugging for profiling
             # return taskUsageStats dict
-            pass
+            # self._set_headers()
+            # self.wfile.write(str(taskUsageStats))
 
         else:
             self._set_headers()
