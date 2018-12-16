@@ -24,9 +24,16 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
     registeredWorkers = []
     profileData = defaultdict(list)
     calculatedProfile = defaultdict(list)
-    startEndTimes = [] # task number, start time, end time
+    startEndTimes = [] # task number, tasktype / function name, start time, end time
     currentTaskNumber = 0 # increment at each handler call
     myLock = None
+
+    # list of dataframes - ith element contains the usage statistics data for worker i
+    # currently has only one element since during profiling phase, we only use one worker
+    usageStatsList = []
+
+    # dictionary with keys as tasks and values as a list of profiles dataframes
+    taskUsageStats = defaultdict(lambda : [])
 
     def _set_headers(self, code=200):
         self.send_response(code)
@@ -116,6 +123,47 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
             self._set_headers()
             self.wfile.write("Calculated Profile {}".format(result))
+        elif "/runLambda/profiler" in parsed_path.path:
+            # TODO run concurrently on all workers
+            # currently profiling phase only on one worker
+            # start only one worker, start profiler and execute task/s
+            # profiles stored in db at end of profiling run
+            # After this, can run scheduler with actual workloads
+
+            if len(MyHTTPRequestHandler.registeredWorkers)<1:
+                self._set_headers(500)
+                self.wfile.write("No workers registered.")
+
+            selectedWorker = scheduler.schedule(MyHTTPRequestHandler.registeredWorkers, parsed_path.path, post_data)
+
+            if selectedWorker is None:
+                self._set_headers(500)
+                self.wfile.write("No worker available with CPU.")
+
+            port = workerTracker.port_to_use(selectedWorker)
+            path = "http://{}:{}{}".format(selectedWorker, port, parsed_path.path)
+            request_data = post_data
+
+            workerTracker.worker_start(selectedWorker,port, parsed_path.path, datetime.datetime.now())
+            r = requests.post(path, json=request_data)
+            workerTracker.worker_end(selectedWorker,port, parsed_path.path, datetime.datetime.now())
+
+            dfdata = r.text # df data dumped to json format
+
+            df = pd.read_json(dfdata)
+            usageStatsList.append(df)
+
+            i = 0 # since only using one worker
+            for task in self.startEndTimes:
+                tempdf = usageStatsList[i]
+                # extract profile of task using start end times
+                taskUsageStats[task[1]].append(tempdf[tempdf["Timestamp"].between(task[2], task[3])])
+
+            # TODO storing in db
+            # for task in taskUsageStats:
+                # store each element in taskUsageStats[task] as a profile in db
+
+
         elif "/runLambda" in parsed_path.path:
             if len(MyHTTPRequestHandler.registeredWorkers)<1:
                 self._set_headers(500)
@@ -142,7 +190,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
                 templist = ["task" + str(self.currentTaskNumber) + "_" + tempname, None, None]
 
                 # store start time for current task
-                templist[1] = int(time.time())
+                templist[2] = int(time.time())
 
                 workerTracker.worker_start(selectedWorker,port, parsed_path.path, datetime.datetime.now())
             finally:
@@ -152,17 +200,16 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             workerTracker.worker_end(selectedWorker,port, parsed_path.path, datetime.datetime.now())
 
             # store end time for current task
-            templist[2] = int(time.time())
+            templist[3] = int(time.time())
 
             # increment currentTaskNumber
             self.currentTaskNumber += 1
 
             # TODO
-            # manage times in case of concurrent calls to multiple handlers
+            # manage times in case of simultaneous calls from multiple clients to multiple handlers
 
             self._set_headers(r.status_code)
             self.wfile.write(r.text)
-
         elif "/status" in parsed_path.path:
             response = ""
             for worker in MyHTTPRequestHandler.registeredWorkers:
@@ -171,11 +218,11 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write(response)
         elif "/lambdaStats" in parsed_path.path:
-            response = ""
-            lambdaStatsData = json.dumps(startEndTimes)
-            response += "\r\n\r\n{}:\r\n{}\r\n".format("lambdaStatsData", lambdaStatsData)
-            self._set_headers()
-            self.wfile.write(response)
+            # TODO debugging for profiling
+            # return taskUsageStats dict
+            # self._set_headers()
+            # self.wfile.write(str(taskUsageStats))
+
         else:
             self._set_headers()
             self.wfile.write("Not a recognized path")
