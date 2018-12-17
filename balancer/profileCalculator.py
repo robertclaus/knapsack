@@ -69,6 +69,7 @@ def add_to_usage(total_usage, each_profile_obj, current_timestamp, granularity):
             break
     # convert aligned_usage and aligned_interval to the form needed for sceduler
     cum_sum_profile_interval = np.cumsum(aligned_interval)
+    print(cum_sum_profile_interval)
     ticks = np.ceil(cum_sum_profile_interval/ granularity).astype(int)
     for i in range(ticks.shape[0]):
         if i == 0:
@@ -82,9 +83,6 @@ def add_to_usage(total_usage, each_profile_obj, current_timestamp, granularity):
         #     new_total_usage[j] = total_usage[j]*1.0 + aligned_usage[i]
         #print(aligned_usage[i])
         #print(new_total_usage)
-
-    if np.any(new_total_usage > 1.0):
-        print("Error")
     return new_total_usage
 
 def addUsage(worker, task):

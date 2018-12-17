@@ -60,17 +60,26 @@ def getTaskProfile(task):
     if task == '/runLambda/step30':
         return {"interval":[2.0, 7.0, 1.0],
                 "usage":[0.05, 0.3, 0.05]}
-
     if task == '/runLambda/step60':
         return {"interval":[2.0, 7.0, 1.0],
                 "usage":[0.05, 0.6, 0.05]}
-
     if task == '/runLambda/stepShort80':
         return {"interval":[1.25, 1.5, 0.25],
                  "usage":[0.05, 0.8, 0.05]}
-
-    return {"interval":[1],
-            "usage":[0.5]}
+    if task == '/runLambda/step45':
+        return {"interval":[2.0,8.0,2.0],
+                "usage":[0.01, 0.45, 0.01]}
+    if task == '/runLambda/per30':
+        return {"interval":[2.0,7.0,1.0],
+                "usage":[0.01, 0.3, 0.01]}
+    if task == '/runLambda/per50':
+        return {"interval":[4.0,5.0,1.0],
+                "usage":[0.01, 0.3, 0.01]}
+    if task == '/runLambda/per70':
+        return {"interval":[6.0,3.0,1.0],
+                "usage":[0.01, 0.3, 0.01]}
+    return {"interval":[1.0,1.0],
+            "usage":[0.5,0.5]}
 
 def running_tasks():
     db = sqlite3.connect(const.dataFile, detect_types=sqlite3.PARSE_DECLTYPES)

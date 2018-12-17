@@ -1,4 +1,5 @@
 import random
+import const
 import numpy as np
 import server
 from profileCalculator import insert_profile, getUsage, addUsage
@@ -22,7 +23,6 @@ def schedule__withProfile(task_id, workerList):
     profile_interval = np.array(task_profile["interval"])
     profile_usagelvl = np.array(task_profile["usage"])
     cum_sum_profile_interval = np.cumsum(profile_interval)
-    print(cum_sum_profile_interval)
     # ticks should have same dimension as profile_interval
     ticks = np.ceil(cum_sum_profile_interval / granularity).astype(int)
     profile_usage = np.zeros(ticks[-1])
@@ -46,7 +46,7 @@ def schedule__withProfile(task_id, workerList):
 def can_schedule(available_rss, required_rss):
     if available_rss.size != required_rss.size:
         print("two array should have same size")
-    if np.all(available_rss-required_rss >= 0):
+    if np.all(available_rss-required_rss >= (1 - const.max_usage)):
         return True
     else:
         return False

@@ -10,15 +10,19 @@ def make_requests(args):
         responseCode = 503
         while responseCode == 503:
             body = {}
-            r = requests.post(path, json=body)
+            try:
+                r = requests.post(path, json=body)
+            except requests.exceptions.ConnectionError as errc:
+                print("Connection Exception")
+                continue
             print(r.content)
             responseCode = r.status_code
-            time.sleep(.1)
+            time.sleep(.2)
 
 
-processes = 5
-request_count = 10
-path = 'http://localhost/runLambda/step30'
+processes = 10
+request_count = 3
+path = 'http://localhost/runLambda/per70'
 
 pool = Pool(processes)
 pool.map(make_requests, [(path, request_count)]*processes)
