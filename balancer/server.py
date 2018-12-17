@@ -165,7 +165,6 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
 
         elif "/runLambda" in parsed_path.path:
-            print("Start Request")
             if len(MyHTTPRequestHandler.registeredWorkers)<1:
                 self._set_headers(500)
                 self.wfile.write("No workers registered.")
@@ -188,7 +187,7 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
                 # get name of handler
                 tempindex = parsed_path.path.index("/runLambda") + len("/runLambda")
                 tempname = parsed_path.path[tempindex:]
-                templist = ["task" + str(self.currentTaskNumber) + "_" + tempname, None, None, None]
+                templist = ["task" + str(self.currentTaskNumber), tempname, None, None]
 
                 # store start time for current task
                 templist[2] = int(time.time())
@@ -208,14 +207,9 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
 
             # TODO
             # manage times in case of simultaneous calls from multiple clients to multiple handlers
-            print("Start Finish")
-            status = r.status_code
-            if r.status_code == '':
-                print("Wierd Status")
-                status = 200
+
             self._set_headers(r.status_code)
             self.wfile.write(r.text)
-            print("Finish")
         elif "/status" in parsed_path.path:
             response = ""
             for worker in MyHTTPRequestHandler.registeredWorkers:
@@ -224,11 +218,11 @@ class MyHTTPRequestHandler(BaseHTTPRequestHandler):
             self._set_headers()
             self.wfile.write(response)
         elif "/lambdaStats" in parsed_path.path:
-            pass
             # TODO debugging for profiling
             # return taskUsageStats dict
-            # self._set_headers()
-            # self.wfile.write(str(taskUsageStats))
+            self._set_headers()
+            self.wfile.write(str(taskUsageStats))
+
         else:
             self._set_headers()
             self.wfile.write("Not a recognized path")
